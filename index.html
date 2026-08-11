@@ -21,6 +21,7 @@
       --accent: #5dc7ff;
       --accent-2: #8d7dff;
       --good: #55d98a;
+      --star: #ffd166;
     }
 
     * { box-sizing: border-box; }
@@ -142,6 +143,7 @@
       min-height: 48px;
       align-items: center;
       justify-content: center;
+      gap: 8px;
       border: 1px solid var(--accent);
       border-radius: 999px;
       padding: 11px 19px;
@@ -149,12 +151,32 @@
       color: #041018;
       text-decoration: none;
       font-weight: 850;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
     }
+
+    .button:hover { transform: translateY(-2px); }
 
     .button.secondary {
       border-color: var(--line);
       background: var(--panel-2);
       color: var(--text);
+    }
+
+    .button.github {
+      border-color: #ffd16680;
+      background: #ffd16614;
+      color: #ffe5a0;
+    }
+
+    .button.github:hover {
+      border-color: var(--star);
+      background: #ffd16620;
+    }
+
+    .star-icon {
+      color: var(--star);
+      font-size: 1.05rem;
+      line-height: 1;
     }
 
     .demo {
@@ -251,7 +273,7 @@
       <nav aria-label="Main navigation">
         <a href="encoder.html">Encode</a>
         <a href="decoder.html">Reveal</a>
-        <a href="https://github.com/netrino23/hiddentext">GitHub</a>
+        <a href="https://github.com/netrino23/hiddentext" target="_blank" rel="noopener noreferrer">GitHub</a>
       </nav>
     </header>
 
@@ -264,6 +286,10 @@
           <div class="actions">
             <a class="button" href="encoder.html">Hide a message</a>
             <a class="button secondary" href="decoder.html">Reveal a message</a>
+            <a class="button github" href="https://github.com/netrino23/hiddentext" target="_blank" rel="noopener noreferrer" aria-label="Star HiddenText on GitHub">
+              <span class="star-icon" aria-hidden="true">★</span>
+              Star on GitHub
+            </a>
           </div>
 
           <div class="demo">
@@ -304,7 +330,11 @@
 
     <footer>
       <span>HiddenText v2 · Open experimental format</span>
-      <a href="https://github.com/netrino23/hiddentext">View the source on GitHub</a>
+      <span>
+        <a href="https://github.com/netrino23/hiddentext" target="_blank" rel="noopener noreferrer">View source</a>
+        ·
+        <a href="https://github.com/netrino23/hiddentext/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+      </span>
     </footer>
   </div>
 </body>
