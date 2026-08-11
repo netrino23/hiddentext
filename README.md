@@ -4,6 +4,8 @@ Hide and reveal invisible Unicode messages beneath ordinary text.
 
 **Live site:** https://netrino23.github.io/hiddentext/
 
+[Try HiddenText](https://netrino23.github.io/hiddentext/) · [⭐ Star the project](https://github.com/netrino23/hiddentext) · [MIT License](LICENSE)
+
 HiddenText is an experimental, client-side steganography tool. It embeds a UTF-8 message and compact format metadata into Unicode Variation Selectors that normally have no visible rendering of their own. The visible cover text remains readable while the hidden payload travels with an exact digital copy.
 
 ## Features
@@ -29,6 +31,7 @@ HiddenText is an experimental, client-side steganography tool. It embeds a UTF-8
 - `index.html` — public landing page
 - `encoder.html` — creates v2 HiddenText posts
 - `decoder.html` — reveals v2 posts and legacy v1 posts
+- `LICENSE` — MIT open-source license
 
 Each page is standalone and uses no external JavaScript dependencies.
 
@@ -70,3 +73,11 @@ The byte-to-Variation-Selector technique was publicly explored in Paul Butler's 
 ## Project status
 
 Experimental proof of concept. Platform compatibility may change as text processors and social networks update their Unicode handling.
+
+## Support the project
+
+If HiddenText surprised you, give the repository a ⭐, share the live demo, report compatibility results, or propose an improvement through an issue or pull request.
+
+## License
+
+HiddenText is released under the [MIT License](LICENSE).
