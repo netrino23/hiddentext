@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <title>HiddenText — Encode a hidden message</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0d10;
+      --panel: #15191f;
+      --panel-2: #1c222a;
+      --text: #f5f7fa;
+      --muted: #aeb8c4;
+      --line: #313a46;
+      --accent: #5dc7ff;
+      --good: #55d98a;
+      --bad: #ff7b7b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 0%, #173044 0, transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(760px, calc(100% - 28px));
+      margin: 28px auto 60px;
+    }
+
+    h1 { margin: 0 0 5px; font-size: clamp(1.8rem, 7vw, 2.8rem); }
+    h2 { margin: 0 0 14px; font-size: 1.15rem; }
+    p { margin: 0; }
+    .lead { color: var(--muted); }
+
+    .version-badge {
+      display: inline-block;
+      margin: 12px 0 0;
+      padding: 6px 10px;
+      border: 1px solid var(--good);
+      border-radius: 999px;
+      color: var(--good);
+      font-size: .78rem;
+      font-weight: 850;
+      letter-spacing: .03em;
+    }
+
+    .site-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .site-nav a {
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .86rem;
+      font-weight: 750;
+    }
+
+    .site-nav a[aria-current="page"] { border-color: var(--accent); color: var(--accent); }
+
+    .card {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 16px 50px rgb(0 0 0 / 18%);
+    }
+
+    label {
+      display: block;
+      margin: 13px 0 6px;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 12px;
+      font: inherit;
+    }
+
+    textarea { min-height: 132px; resize: vertical; }
+    #postOutput { min-height: 155px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #041018;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    button:disabled { opacity: .58; cursor: wait; }
+
+    .status {
+      min-height: 1.5em;
+      margin-top: 12px;
+      color: var(--muted);
+    }
+
+    .status.good { color: var(--good); }
+    .status.bad { color: var(--bad); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 11px;
+      border-radius: 10px;
+      background: var(--panel-2);
+    }
+
+    .stat b { display: block; overflow-wrap: anywhere; font-size: 1.12rem; }
+    .stat span { color: var(--muted); font-size: .78rem; }
+
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .steps {
+      margin: 9px 0 0;
+      padding-left: 1.25rem;
+      color: var(--muted);
+    }
+
+    .steps li + li { margin-top: 5px; }
+  </style>
+</head>
+<body>
+<main>
+  <nav class="site-nav" aria-label="Main navigation">
+    <a href="./">Home</a>
+    <a href="encoder.html" aria-current="page">Encode</a>
+    <a href="decoder.html">Reveal</a>
+  </nav>
+  <h1>HiddenText Encoder v2</h1>
+  <p class="lead">Create a clean cover post. The format metadata and your message live entirely inside an invisible Unicode layer.</p>
+  <p class="version-badge">V2 · NO VISIBLE METADATA</p>
+
+  <section class="card" aria-labelledby="composeTitle">
+    <h2 id="composeTitle">1. Write your message</h2>
+
+    <label for="carrier">Visible cover text</label>
+    <input id="carrier" type="text" value="Just a thought.">
+
+    <label for="key">Public seed</label>
+    <input id="key" type="text" value="Q7" maxlength="24">
+
+    <label for="secret">Hidden message</label>
+    <textarea id="secret">There is more beneath these words than you can see.</textarea>
+
+    <div class="actions">
+      <button id="encodeButton" type="button">Create hidden post</button>
+      <button id="roundTripButton" class="secondary" type="button">Run accuracy test</button>
+    </div>
+    <p id="encodeStatus" class="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card" aria-labelledby="outputTitle">
+    <h2 id="outputTitle">2. Copy the finished post</h2>
+    <label for="postOutput">Invisible characters follow the visible cover text</label>
+    <textarea id="postOutput" spellcheck="false" aria-label="Encoded post" readonly></textarea>
+
+    <div class="actions">
+      <button id="copyButton" type="button">Copy exact post</button>
+      <button id="selectButton" class="secondary" type="button">Select all</button>
+      <button id="shareButton" class="secondary" type="button" hidden>Share…</button>
+    </div>
+
+    <div id="stats" class="stats"></div>
+    <p class="note">If your browser blocks automatic copying, choose “Select all” and then “Copy” from the selection menu. Always copy the field exactly—the invisible payload is part of the text.</p>
+  </section>
+
+  <section class="card" aria-labelledby="publishTitle">
+    <h2 id="publishTitle">3. Publish it</h2>
+    <ol class="steps">
+      <li>Do not retype the post—use exact copy and paste.</li>
+      <li>Only the cover text will be visible on supported platforms.</li>
+      <li>Copy the published text into the Reveal page to test whether the payload survived.</li>
+    </ol>
+    <p class="note">This is steganography, not encryption. The public seed is not a secret key. Screenshots, OCR, retyping, or Unicode sanitization will not preserve the hidden layer.</p>
+  </section>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const utf8 = new TextEncoder();
+  const textDecoder = new TextDecoder("utf-8", { fatal: true });
+  const V2_MAGIC = Uint8Array.of(0x48, 0x54, 0x58, 0x32); // "HTX2"
+
+  function byteToSelector(byte) {
+    return String.fromCodePoint(byte < 16 ? 0xFE00 + byte : 0xE0100 + byte - 16);
+  }
+
+  function selectorToByte(codePoint) {
+    if (codePoint >= 0xFE00 && codePoint <= 0xFE0F) return codePoint - 0xFE00;
+    if (codePoint >= 0xE0100 && codePoint <= 0xE01EF) return codePoint - 0xE0100 + 16;
+    return null;
+  }
+
+  function findMagic(bytes) {
+    for (let start = 0; start <= bytes.length - V2_MAGIC.length; start += 1) {
+      let matches = true;
+      for (let index = 0; index < V2_MAGIC.length; index += 1) {
+        if (bytes[start + index] !== V2_MAGIC[index]) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches) return start;
+    }
+    return -1;
+  }
+
+  function fnvSeed(key) {
+    let hash = 0x811c9dc5;
+    for (const byte of utf8.encode(key)) {
+      hash ^= byte;
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    return hash || 0x9e3779b9;
+  }
+
+  function applyPublicSeed(bytes, key) {
+    let state = fnvSeed(String(key));
+    const output = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i += 1) {
+      state ^= state << 13;
+      state ^= state >>> 17;
+      state ^= state << 5;
+      state >>>= 0;
+      output[i] = bytes[i] ^ (state & 0xff);
+    }
+    return output;
+  }
+
+  function crc32(bytes) {
+    let crc = 0xffffffff;
+    for (const byte of bytes) {
+      crc ^= byte;
+      for (let bit = 0; bit < 8; bit += 1) {
+        crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+      }
+    }
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+
+  function addCrc(bytes) {
+    const packet = new Uint8Array(bytes.length + 4);
+    new DataView(packet.buffer).setUint32(0, crc32(bytes));
+    packet.set(bytes, 4);
+    return packet;
+  }
+
+  async function compressDeflate(bytes) {
+    if (!("CompressionStream" in globalThis)) throw new Error("This browser does not support compression.");
+    const stream = new CompressionStream("deflate");
+    const reading = new Response(stream.readable).arrayBuffer();
+    const writer = stream.writable.getWriter();
+    await writer.write(bytes);
+    await writer.close();
+    return new Uint8Array(await reading);
+  }
+
+  async function decompressDeflate(bytes) {
+    if (!("DecompressionStream" in globalThis)) throw new Error("This browser does not support decompression.");
+    const stream = new DecompressionStream("deflate");
+    const reading = new Response(stream.readable).arrayBuffer();
+    const writer = stream.writable.getWriter();
+    await writer.write(bytes);
+    await writer.close();
+    return new Uint8Array(await reading);
+  }
+
+  function verifyAndRemoveCrc(packet) {
+    if (packet.length < 4) throw new Error("The payload is incomplete.");
+    const expected = new DataView(packet.buffer, packet.byteOffset, packet.byteLength).getUint32(0);
+    const bytes = packet.slice(4);
+    if (crc32(bytes) !== expected) throw new Error("The payload was altered.");
+    return bytes;
+  }
+
+  function xWeightedLength(text) {
+    let units = 0;
+    for (const char of text) {
+      const cp = char.codePointAt(0);
+      const single = cp <= 4351 ||
+        (cp >= 8192 && cp <= 8205) ||
+        (cp >= 8208 && cp <= 8223) ||
+        (cp >= 8242 && cp <= 8247);
+      units += single ? 1 : 2;
+    }
+    return units;
+  }
+
+  function wordCount(text) {
+    const trimmed = text.trim();
+    return trimmed ? trimmed.split(/\s+/u).length : 0;
+  }
+
+  function setStatus(message, kind = "") {
+    const node = $("encodeStatus");
+    node.textContent = message;
+    node.className = `status ${kind}`.trim();
+  }
+
+  function buildV2Envelope(mode, key, payload) {
+    const keyBytes = utf8.encode(key);
+    if (keyBytes.length > 255) throw new Error("The public seed is too long.");
+    if (payload.length > 65535) throw new Error("The payload is too large.");
+
+    const metadataBytes = 8 + keyBytes.length;
+    const envelope = new Uint8Array(metadataBytes + payload.length);
+    envelope.set(V2_MAGIC, 0);
+    envelope[4] = mode === "d" ? 1 : 0;
+    envelope[5] = keyBytes.length;
+    new DataView(envelope.buffer).setUint16(6, payload.length);
+    envelope.set(keyBytes, 8);
+    envelope.set(applyPublicSeed(payload, key), metadataBytes);
+    return { envelope, metadataBytes };
+  }
+
+  function parseV2Envelope(post) {
+    const selectorBytes = [];
+    for (const char of post) {
+      const byte = selectorToByte(char.codePointAt(0));
+      if (byte !== null) selectorBytes.push(byte);
+    }
+
+    const bytes = Uint8Array.from(selectorBytes);
+    const start = findMagic(bytes);
+    if (start < 0) throw new Error("No invisible v2 header was found.");
+    if (bytes.length < start + 8) throw new Error("The invisible v2 header is incomplete.");
+
+    const modeByte = bytes[start + 4];
+    if (![0, 1].includes(modeByte)) throw new Error("Unknown v2 payload mode.");
+    const keyLength = bytes[start + 5];
+    const payloadLength = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(start + 6);
+    const keyStart = start + 8;
+    const payloadStart = keyStart + keyLength;
+    const payloadEnd = payloadStart + payloadLength;
+    if (bytes.length < payloadEnd) throw new Error("The invisible v2 payload is incomplete.");
+
+    return {
+      mode: modeByte === 1 ? "d" : "n",
+      key: textDecoder.decode(bytes.slice(keyStart, payloadStart)),
+      obscuredPayload: bytes.slice(payloadStart, payloadEnd)
+    };
+  }
+
+  function renderStats({ carrier, secret, payloadBytes, metadataBytes, post, mode }) {
+    const weighted = xWeightedLength(post);
+    const items = [
+      [wordCount(carrier), "visible words"],
+      [wordCount(secret), "hidden words"],
+      [payloadBytes, "payload bytes"],
+      [metadataBytes, "invisible metadata bytes"],
+      [`${weighted}/280`, weighted <= 280 ? "fits a standard X post" : "exceeds a standard X post"],
+      [mode === "d" ? "deflate" : "uncompressed", "payload mode"],
+      ["v2", "invisible format"]
+    ];
+    $("stats").innerHTML = items.map(([value, label]) =>
+      `<div class="stat"><b>${value}</b><span>${label}</span></div>`
+    ).join("");
+  }
+
+  async function buildPost() {
+    const carrier = $("carrier").value.trim();
+    const secret = $("secret").value.trim();
+    const key = $("key").value || "0";
+    if (!carrier || !secret) throw new Error("Visible cover text and a hidden message are required.");
+
+    const plaintext = utf8.encode(secret);
+    let mode = "n";
+    let payload = addCrc(plaintext);
+
+    if ("CompressionStream" in globalThis) {
+      try {
+        const compressed = await compressDeflate(plaintext);
+        if (compressed.length < payload.length) {
+          mode = "d";
+          payload = compressed;
+        }
+      } catch {
+        mode = "n";
+        payload = addCrc(plaintext);
+      }
+    }
+
+    const { envelope, metadataBytes } = buildV2Envelope(mode, key, payload);
+    const invisible = Array.from(envelope, byteToSelector).join("");
+    const post = `${carrier}${invisible}`;
+    $("postOutput").value = post;
+    renderStats({ carrier, secret, payloadBytes: payload.length, metadataBytes, post, mode });
+
+    const weighted = xWeightedLength(post);
+    setStatus(
+      weighted <= 280
+        ? `Ready: ${wordCount(secret)} hidden words, X weight ${weighted}/280.`
+        : `Created, but the X weight is ${weighted}/280. Shorten the message.`,
+      weighted <= 280 ? "good" : "bad"
+    );
+    return { post, secret, key, mode };
+  }
+
+  async function decodeForTest(post) {
+    const packet = parseV2Envelope(post);
+    const payload = applyPublicSeed(packet.obscuredPayload, packet.key);
+    const plaintext = packet.mode === "d"
+      ? await decompressDeflate(payload)
+      : verifyAndRemoveCrc(payload);
+    return textDecoder.decode(plaintext);
+  }
+
+  function selectWholePost() {
+    const area = $("postOutput");
+    area.removeAttribute("readonly");
+    area.focus();
+    area.setSelectionRange(0, area.value.length);
+    area.setAttribute("readonly", "");
+  }
+
+  async function copyPost() {
+    const post = $("postOutput").value || (await buildPost()).post;
+    if (navigator.clipboard?.writeText && globalThis.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(post);
+        setStatus("The exact post was copied with its invisible payload.", "good");
+        return;
+      } catch {
+        // Continue to the manual-selection fallback below.
+      }
+    }
+    selectWholePost();
+    setStatus("The entire post is selected. Choose “Copy” from your device menu.", "bad");
+  }
+
+  async function withButton(button, task) {
+    button.disabled = true;
+    try {
+      await task();
+    } catch (error) {
+      setStatus(error?.message || String(error), "bad");
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  $("encodeButton").addEventListener("click", () => withButton($("encodeButton"), buildPost));
+  $("copyButton").addEventListener("click", () => withButton($("copyButton"), copyPost));
+
+  $("selectButton").addEventListener("click", () => {
+    selectWholePost();
+    setStatus("The whole post is selected, including the invisible characters.", "good");
+  });
+
+  $("roundTripButton").addEventListener("click", () => withButton($("roundTripButton"), async () => {
+    const result = await buildPost();
+    const decoded = await decodeForTest(result.post);
+    if (decoded !== result.secret) throw new Error("The accuracy test returned different text.");
+    setStatus("Accuracy test passed: the message returned byte-for-byte identical.", "good");
+  }));
+
+  if (navigator.share) {
+    $("shareButton").hidden = false;
+    $("shareButton").addEventListener("click", () => withButton($("shareButton"), async () => {
+      const post = $("postOutput").value || (await buildPost()).post;
+      await navigator.share({ text: post });
+      setStatus("The post was sent to your device share menu.", "good");
+    }));
+  }
+
+  let timer;
+  for (const id of ["carrier", "key", "secret"]) {
+    $(id).addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => buildPost().catch((error) => {
+        $("postOutput").value = "";
+        setStatus(error.message, "bad");
+      }), 220);
+    });
+  }
+
+  buildPost().catch((error) => setStatus(error.message, "bad"));
+</script>
+</body>
+</html>
