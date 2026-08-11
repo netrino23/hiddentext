@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <title>HiddenText — Reveal a hidden message</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0d10;
+      --panel: #15191f;
+      --panel-2: #1c222a;
+      --text: #f5f7fa;
+      --muted: #aeb8c4;
+      --line: #313a46;
+      --accent: #5dc7ff;
+      --good: #55d98a;
+      --bad: #ff7b7b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 0%, #173044 0, transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(760px, calc(100% - 28px));
+      margin: 28px auto 60px;
+    }
+
+    h1 { margin: 0 0 5px; font-size: clamp(1.8rem, 7vw, 2.8rem); }
+    h2 { margin: 0 0 14px; font-size: 1.15rem; }
+    p { margin: 0; }
+    .lead { color: var(--muted); }
+
+    .version-badge {
+      display: inline-block;
+      margin: 12px 0 0;
+      padding: 6px 10px;
+      border: 1px solid var(--good);
+      border-radius: 999px;
+      color: var(--good);
+      font-size: .78rem;
+      font-weight: 850;
+      letter-spacing: .03em;
+    }
+
+    .site-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .site-nav a {
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .86rem;
+      font-weight: 750;
+    }
+
+    .site-nav a[aria-current="page"] { border-color: var(--accent); color: var(--accent); }
+
+    .card {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 16px 50px rgb(0 0 0 / 18%);
+    }
+
+    label {
+      display: block;
+      margin: 13px 0 6px;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 155px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 12px;
+      resize: vertical;
+      font: inherit;
+    }
+
+    #postInput { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    #decoded { min-height: 125px; }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #041018;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    button:disabled { opacity: .58; cursor: wait; }
+
+    .status {
+      min-height: 1.5em;
+      margin-top: 12px;
+      color: var(--muted);
+    }
+
+    .status.good { color: var(--good); }
+    .status.bad { color: var(--bad); }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    .detail {
+      min-width: 0;
+      padding: 11px;
+      border-radius: 10px;
+      background: var(--panel-2);
+    }
+
+    .detail b { display: block; overflow-wrap: anywhere; font-size: 1.02rem; }
+    .detail span { color: var(--muted); font-size: .78rem; }
+
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .empty { display: none; }
+  </style>
+</head>
+<body>
+<main>
+  <nav class="site-nav" aria-label="Main navigation">
+    <a href="./">Home</a>
+    <a href="encoder.html">Encode</a>
+    <a href="decoder.html" aria-current="page">Reveal</a>
+  </nav>
+  <h1>HiddenText Decoder v2</h1>
+  <p class="lead">Reveal the invisible message inside an exact digital copy of a HiddenText post.</p>
+  <p class="version-badge">V2 · ALSO READS LEGACY V1 POSTS</p>
+
+  <section class="card" aria-labelledby="pasteTitle">
+    <h2 id="pasteTitle">1. Paste the post</h2>
+    <label for="postInput">The complete post text</label>
+    <textarea id="postInput" spellcheck="false" placeholder="Paste the exact post text here…"></textarea>
+
+    <div class="actions">
+      <button id="decodeButton" type="button">Reveal message</button>
+      <button id="pasteButton" class="secondary" type="button">Paste from clipboard</button>
+      <button id="clearButton" class="secondary" type="button">Clear</button>
+    </div>
+    <p id="decodeStatus" class="status" aria-live="polite">Waiting for a HiddenText post.</p>
+    <p class="note">If your browser blocks automatic clipboard access, press and hold inside the field and choose “Paste”. Decoding starts automatically.</p>
+  </section>
+
+  <section id="resultCard" class="card empty" aria-labelledby="resultTitle">
+    <h2 id="resultTitle">2. Hidden message</h2>
+    <label for="decoded">Exact result</label>
+    <textarea id="decoded" readonly></textarea>
+
+    <div id="details" class="details"></div>
+
+    <label for="visibleText">Visible cover text found</label>
+    <textarea id="visibleText" readonly></textarea>
+    <p class="note">The seed is public. This is steganographic concealment, not secure encryption.</p>
+  </section>
+
+  <section class="card" aria-labelledby="limitsTitle">
+    <h2 id="limitsTitle">What must be preserved</h2>
+    <p class="lead">The post must arrive as real Unicode text. Screenshots, OCR, retyping, or software that strips Variation Selectors will destroy the hidden payload.</p>
+  </section>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const utf8 = new TextEncoder();
+  const textDecoder = new TextDecoder("utf-8", { fatal: true });
+  const V2_MAGIC = Uint8Array.of(0x48, 0x54, 0x58, 0x32); // "HTX2"
+
+  function selectorToByte(codePoint) {
+    if (codePoint >= 0xFE00 && codePoint <= 0xFE0F) return codePoint - 0xFE00;
+    if (codePoint >= 0xE0100 && codePoint <= 0xE01EF) return codePoint - 0xE0100 + 16;
+    return null;
+  }
+
+  function stripSelectors(text) {
+    return Array.from(text, (char) =>
+      selectorToByte(char.codePointAt(0)) === null ? char : ""
+    ).join("");
+  }
+
+  function fnvSeed(key) {
+    let hash = 0x811c9dc5;
+    for (const byte of utf8.encode(key)) {
+      hash ^= byte;
+      hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    return hash || 0x9e3779b9;
+  }
+
+  function applyPublicSeed(bytes, key) {
+    let state = fnvSeed(String(key));
+    const output = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i += 1) {
+      state ^= state << 13;
+      state ^= state >>> 17;
+      state ^= state << 5;
+      state >>>= 0;
+      output[i] = bytes[i] ^ (state & 0xff);
+    }
+    return output;
+  }
+
+  function crc32(bytes) {
+    let crc = 0xffffffff;
+    for (const byte of bytes) {
+      crc ^= byte;
+      for (let bit = 0; bit < 8; bit += 1) {
+        crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+      }
+    }
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+
+  function verifyAndRemoveCrc(packet) {
+    if (packet.length < 4) throw new Error("The payload is incomplete.");
+    const expected = new DataView(packet.buffer, packet.byteOffset, packet.byteLength).getUint32(0);
+    const bytes = packet.slice(4);
+    if (crc32(bytes) !== expected) {
+      throw new Error("The invisible payload was altered or was not copied in full.");
+    }
+    return bytes;
+  }
+
+  async function decompressDeflate(bytes) {
+    if (!("DecompressionStream" in globalThis)) {
+      throw new Error("This browser does not support deflate decompression.");
+    }
+    const stream = new DecompressionStream("deflate");
+    const reading = new Response(stream.readable).arrayBuffer();
+    const writer = stream.writable.getWriter();
+    await writer.write(bytes);
+    await writer.close();
+    return new Uint8Array(await reading);
+  }
+
+  function wordCount(text) {
+    const trimmed = text.trim();
+    return trimmed ? trimmed.split(/\s+/u).length : 0;
+  }
+
+  function setStatus(message, kind = "") {
+    const node = $("decodeStatus");
+    node.textContent = message;
+    node.className = `status ${kind}`.trim();
+  }
+
+  function findMagic(bytes) {
+    for (let start = 0; start <= bytes.length - V2_MAGIC.length; start += 1) {
+      let matches = true;
+      for (let index = 0; index < V2_MAGIC.length; index += 1) {
+        if (bytes[start + index] !== V2_MAGIC[index]) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches) return start;
+    }
+    return -1;
+  }
+
+  function parseV2(text) {
+    const characters = Array.from(text);
+    const selectors = [];
+    for (let characterIndex = 0; characterIndex < characters.length; characterIndex += 1) {
+      const char = characters[characterIndex];
+      const byte = selectorToByte(char.codePointAt(0));
+      if (byte !== null) selectors.push({ byte, characterIndex });
+    }
+
+    const bytes = Uint8Array.from(selectors, ({ byte }) => byte);
+    const start = findMagic(bytes);
+    if (start < 0) return null;
+    if (bytes.length < start + 8) throw new Error("The invisible v2 header is incomplete.");
+
+    const modeByte = bytes[start + 4];
+    if (![0, 1].includes(modeByte)) throw new Error("Unknown v2 payload mode.");
+    const keyLength = bytes[start + 5];
+    const payloadLength = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(start + 6);
+    const keyStart = start + 8;
+    const payloadStart = keyStart + keyLength;
+    const payloadEnd = payloadStart + payloadLength;
+    if (bytes.length < payloadEnd) {
+      throw new Error("The invisible payload was not copied in full.");
+    }
+
+    const envelopeCharacterIndexes = new Set(
+      selectors.slice(start, payloadEnd).map(({ characterIndex }) => characterIndex)
+    );
+    const visibleText = characters.filter((char, characterIndex) =>
+      !envelopeCharacterIndexes.has(characterIndex)
+    ).join("").trim();
+
+    return {
+      version: 2,
+      header: {
+        v: 2,
+        z: modeByte === 1 ? "d" : "n",
+        k: textDecoder.decode(bytes.slice(keyStart, payloadStart))
+      },
+      obscuredPayload: bytes.slice(payloadStart, payloadEnd),
+      hiddenBytes: 8 + keyLength + payloadLength,
+      visibleText
+    };
+  }
+
+  function findLegacyHeader(text) {
+    let start = text.indexOf('{"v":1,');
+    while (start >= 0) {
+      let inString = false;
+      let escaped = false;
+      for (let index = start; index < text.length; index += 1) {
+        const char = text[index];
+        if (escaped) {
+          escaped = false;
+        } else if (char === "\\" && inString) {
+          escaped = true;
+        } else if (char === '"') {
+          inString = !inString;
+        } else if (char === "}" && !inString) {
+          const headerText = text.slice(start, index + 1);
+          try {
+            const header = JSON.parse(headerText);
+            if (header.v === 1 && ["d", "n"].includes(header.z)) {
+              const bodyStart = text.slice(index + 1).match(/^\r?\n/u)?.[0].length ?? 0;
+              return {
+                header,
+                headerText,
+                body: text.slice(index + 1 + bodyStart)
+              };
+            }
+          } catch {
+            break;
+          }
+        }
+      }
+      start = text.indexOf('{"v":1,', start + 1);
+    }
+    throw new Error("No invisible v2 header or legacy v1 JSON header was found.");
+  }
+
+  function parseLegacyV1(text) {
+    const { header, body } = findLegacyHeader(text);
+    const hidden = [];
+    for (const char of body) {
+      const byte = selectorToByte(char.codePointAt(0));
+      if (byte !== null) hidden.push(byte);
+    }
+    if (!hidden.length) {
+      throw new Error("No invisible payload was found. Only the visible text may have been copied.");
+    }
+    return {
+      version: 1,
+      header,
+      obscuredPayload: Uint8Array.from(hidden),
+      hiddenBytes: hidden.length,
+      visibleText: stripSelectors(body).trim()
+    };
+  }
+
+  function renderDetails(version, header, hiddenBytes, message) {
+    const items = [
+      [`v${version}`, version === 2 ? "invisible format" : "legacy JSON format"],
+      [header.z === "d" ? "deflate" : "uncompressed", "payload mode"],
+      [String(header.k ?? "0"), "public seed"],
+      [hiddenBytes, "hidden bytes"],
+      [wordCount(message), "recovered words"]
+    ];
+    $("details").innerHTML = items.map(([value, label]) =>
+      `<div class="detail"><b>${value}</b><span>${label}</span></div>`
+    ).join("");
+  }
+
+  async function decodePost() {
+    const source = $("postInput").value;
+    if (!source.trim()) throw new Error("Paste the complete post first.");
+
+    const packet = parseV2(source) ?? parseLegacyV1(source);
+    const payload = applyPublicSeed(packet.obscuredPayload, packet.header.k ?? "0");
+    const plaintext = packet.header.z === "d"
+      ? await decompressDeflate(payload)
+      : verifyAndRemoveCrc(payload);
+    const message = textDecoder.decode(plaintext);
+
+    $("decoded").value = message;
+    $("visibleText").value = packet.visibleText;
+    renderDetails(packet.version, packet.header, packet.hiddenBytes, message);
+    $("resultCard").classList.remove("empty");
+    setStatus(
+      `Success: recovered exactly ${wordCount(message)} words from ${packet.hiddenBytes} hidden bytes.`,
+      "good"
+    );
+    return message;
+  }
+
+  function clearAll() {
+    $("postInput").value = "";
+    $("decoded").value = "";
+    $("visibleText").value = "";
+    $("details").innerHTML = "";
+    $("resultCard").classList.add("empty");
+    setStatus("Waiting for a HiddenText post.");
+    $("postInput").focus();
+  }
+
+  async function withButton(button, task) {
+    button.disabled = true;
+    try {
+      await task();
+    } catch (error) {
+      $("resultCard").classList.add("empty");
+      setStatus(error?.message || String(error), "bad");
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  $("decodeButton").addEventListener("click", () => withButton($("decodeButton"), decodePost));
+  $("clearButton").addEventListener("click", clearAll);
+
+  $("pasteButton").addEventListener("click", () => withButton($("pasteButton"), async () => {
+    if (!navigator.clipboard?.readText || !globalThis.isSecureContext) {
+      $("postInput").focus();
+      throw new Error("Automatic clipboard access is blocked here. Press and hold inside the field, then choose “Paste”.");
+    }
+    $("postInput").value = await navigator.clipboard.readText();
+    await decodePost();
+  }));
+
+  let timer;
+  $("postInput").addEventListener("input", () => {
+    clearTimeout(timer);
+    if (!$("postInput").value.trim()) {
+      clearAll();
+      return;
+    }
+    timer = setTimeout(() => decodePost().catch((error) => {
+      $("resultCard").classList.add("empty");
+      setStatus(error.message, "bad");
+    }), 180);
+  });
+</script>
+</body>
+</html>
