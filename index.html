@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="description" content="Hide and reveal invisible Unicode messages beneath ordinary text.">
+  <meta property="og:title" content="HiddenText">
+  <meta property="og:description" content="What you see is not all that is there. Hide a message beneath ordinary text.">
+  <meta property="og:type" content="website">
+  <title>HiddenText — Messages beneath ordinary text</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0d10;
+      --panel: #15191f;
+      --panel-2: #1c222a;
+      --text: #f5f7fa;
+      --muted: #aeb8c4;
+      --line: #313a46;
+      --accent: #5dc7ff;
+      --accent-2: #8d7dff;
+      --good: #55d98a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 0%, #173044 0, transparent 32rem),
+        radial-gradient(circle at 92% 22%, #231b4a 0, transparent 28rem),
+        var(--bg);
+      color: var(--text);
+      font: 16px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(1040px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      font-weight: 850;
+      letter-spacing: -.02em;
+    }
+
+    .mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 1px solid #5dc7ff80;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #5dc7ff26, #8d7dff26);
+      color: var(--accent);
+      box-shadow: 0 0 24px #5dc7ff26;
+    }
+
+    nav { display: flex; gap: 8px; }
+
+    nav a {
+      padding: 7px 11px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .88rem;
+      font-weight: 750;
+    }
+
+    nav a:hover { border-color: var(--line); color: var(--text); }
+
+    .hero {
+      display: grid;
+      min-height: 580px;
+      align-items: center;
+      padding: 62px 0 84px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      width: fit-content;
+      margin: 0 0 16px;
+      padding: 6px 10px;
+      border: 1px solid #55d98a80;
+      border-radius: 999px;
+      color: var(--good);
+      font-size: .76rem;
+      font-weight: 850;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 0;
+      font-size: clamp(3rem, 9vw, 6.7rem);
+      line-height: .95;
+      letter-spacing: -.065em;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, var(--accent), #b7a9ff);
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-copy {
+      max-width: 670px;
+      margin: 25px 0 0;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2.2vw, 1.28rem);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 11px;
+      margin-top: 30px;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      padding: 11px 19px;
+      background: var(--accent);
+      color: #041018;
+      text-decoration: none;
+      font-weight: 850;
+    }
+
+    .button.secondary {
+      border-color: var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    .demo {
+      margin-top: 48px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #15191fd9;
+      box-shadow: 0 24px 70px #0006;
+    }
+
+    .demo-label {
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .demo-text { margin-top: 7px; font-size: clamp(1.3rem, 4vw, 2rem); }
+
+    .demo-hint {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--accent);
+      font-size: .9rem;
+    }
+
+    section.info { padding: 74px 0; }
+
+    h2 { margin: 0; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -.045em; }
+
+    .section-lead { max-width: 660px; margin: 13px 0 0; color: var(--muted); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .card {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .number { color: var(--accent); font-size: .8rem; font-weight: 850; }
+    .card h3 { margin: 9px 0 7px; }
+    .card p { margin: 0; color: var(--muted); font-size: .92rem; }
+
+    .notice {
+      margin: 70px 0;
+      padding: 22px;
+      border: 1px solid #ffbd5980;
+      border-radius: 16px;
+      background: #ffbd590d;
+    }
+
+    .notice strong { color: #ffcf82; }
+    .notice p { margin: 5px 0 0; color: var(--muted); }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 28px 0 45px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    footer a { color: var(--accent); }
+
+    @media (max-width: 720px) {
+      header { align-items: flex-start; }
+      nav { flex-direction: column; align-items: flex-end; }
+      .hero { min-height: auto; padding: 70px 0; }
+      .grid { grid-template-columns: 1fr; }
+      .demo { margin-top: 38px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="./" aria-label="HiddenText home">
+        <span class="mark" aria-hidden="true">H</span>
+        <span>HiddenText</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="encoder.html">Encode</a>
+        <a href="decoder.html">Reveal</a>
+        <a href="https://github.com/netrino23/hiddentext">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Experimental Unicode steganography · v2</p>
+          <h1>What you see is <span>not all</span> that is there.</h1>
+          <p class="hero-copy">Hide a message beneath ordinary-looking text, copy it into a post, and reveal it later from the invisible Unicode layer.</p>
+          <div class="actions">
+            <a class="button" href="encoder.html">Hide a message</a>
+            <a class="button secondary" href="decoder.html">Reveal a message</a>
+          </div>
+
+          <div class="demo">
+            <div class="demo-label">What everyone sees</div>
+            <div class="demo-text">Just a beautiful day.</div>
+            <div class="demo-hint">An invisible message can travel with this exact text.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="info" id="how-it-works">
+        <h2>Three simple steps.</h2>
+        <p class="section-lead">Everything runs locally in your browser. No account, upload, or server-side message storage is required.</p>
+        <div class="grid">
+          <article class="card">
+            <div class="number">01</div>
+            <h3>Write</h3>
+            <p>Choose the visible cover text and the message you want to hide beneath it.</p>
+          </article>
+          <article class="card">
+            <div class="number">02</div>
+            <h3>Copy</h3>
+            <p>HiddenText encodes the payload as invisible Unicode Variation Selectors.</p>
+          </article>
+          <article class="card">
+            <div class="number">03</div>
+            <h3>Reveal</h3>
+            <p>Paste an exact digital copy into the decoder to recover the original message.</p>
+          </article>
+        </div>
+      </section>
+
+      <aside class="notice">
+        <strong>Not encryption.</strong>
+        <p>HiddenText conceals information visually, but anyone with a compatible decoder can read it. Screenshots, OCR, retyping, text normalization, or platform sanitization may remove the hidden data.</p>
+      </aside>
+    </main>
+
+    <footer>
+      <span>HiddenText v2 · Open experimental format</span>
+      <a href="https://github.com/netrino23/hiddentext">View the source on GitHub</a>
+    </footer>
+  </div>
+</body>
+</html>
