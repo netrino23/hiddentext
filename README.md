@@ -16,6 +16,9 @@ HiddenText is an experimental, client-side steganography tool. It embeds a UTF-8
 - CRC32 integrity checking for uncompressed payloads
 - X weighted-length estimate
 - Mobile-friendly copy, paste, selection, and share controls
+- Installable Progressive Web App with offline encoder and decoder
+- Android/compatible-platform share target for sending text to the decoder
+- Home-screen shortcuts for Encode and Reveal
 - Legacy v1 decoding support
 - No accounts, uploads, database, or server-side message storage
 
@@ -31,9 +34,19 @@ HiddenText is an experimental, client-side steganography tool. It embeds a UTF-8
 - `index.html` — public landing page
 - `encoder.html` — creates v2 HiddenText posts
 - `decoder.html` — reveals v2 posts and legacy v1 posts
+- `manifest.webmanifest` — PWA identity, icons, shortcuts, and share target
+- `pwa.js` — installation flow and service-worker registration
+- `service-worker.js` — offline application-shell cache
+- `icons/` — scalable and platform-sized application icons
 - `LICENSE` — MIT open-source license
 
-Each page is standalone and uses no external JavaScript dependencies.
+The encoder and decoder keep their core logic inline and use no third-party JavaScript dependencies. The small local `pwa.js` file only manages installation and service-worker registration.
+
+## Install the app
+
+Open the live site and choose **Install app**. On supported Chromium browsers this opens the native browser installation prompt. On iPhone and iPad, use Safari’s **Share → Add to Home Screen** action. Once installed, the core HiddenText pages are cached for offline use.
+
+When an installed platform supports Web Share Target and another app shares actual text, HiddenText can receive that text directly in the Reveal page. Apps that share only a link still require copying the complete post text so that the invisible Unicode layer is preserved.
 
 ## Compact v2 envelope
 

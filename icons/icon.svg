@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">HiddenText app icon</title>
+  <desc id="description">A luminous H above subtle hidden data marks on a dark blue background.</desc>
+  <defs>
+    <linearGradient id="background" x1="54" y1="34" x2="456" y2="478" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173044"/>
+      <stop offset="0.48" stop-color="#0b0d10"/>
+      <stop offset="1" stop-color="#231b4a"/>
+    </linearGradient>
+    <linearGradient id="frame" x1="96" y1="76" x2="420" y2="436" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5dc7ff"/>
+      <stop offset="1" stop-color="#8d7dff"/>
+    </linearGradient>
+    <linearGradient id="letter" x1="164" y1="144" x2="350" y2="370" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#dff6ff"/>
+      <stop offset="0.5" stop-color="#5dc7ff"/>
+      <stop offset="1" stop-color="#b7a9ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(168 130) rotate(47) scale(330)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5dc7ff" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#5dc7ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="13"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#background)"/>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+  <rect x="72" y="72" width="368" height="368" rx="104" fill="#15191f" fill-opacity="0.76" stroke="url(#frame)" stroke-width="7"/>
+  <path d="M164 354V158M348 354V158M164 256H348" stroke="#5dc7ff" stroke-opacity="0.28" stroke-width="42" stroke-linecap="round" filter="url(#shadow)"/>
+  <g fill="#8d7dff" opacity="0.58">
+    <circle cx="122" cy="132" r="7"/>
+    <circle cx="389" cy="137" r="5"/>
+    <circle cx="116" cy="382" r="5"/>
+    <circle cx="399" cy="374" r="8"/>
+    <circle cx="105" cy="254" r="4"/>
+    <circle cx="409" cy="254" r="4"/>
+  </g>
+  <path d="M164 354V158M348 354V158M164 256H348" stroke="url(#letter)" stroke-width="34" stroke-linecap="round"/>
+</svg>

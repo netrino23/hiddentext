@@ -4,6 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0d10">
+  <meta name="application-name" content="HiddenText">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HiddenText">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <script src="pwa.js" defer></script>
   <title>HiddenText — Reveal a hidden message</title>
   <style>
     :root {
@@ -487,6 +495,29 @@
       setStatus(error.message, "bad");
     }), 180);
   });
+
+  function receiveSharedPost() {
+    const params = new URLSearchParams(window.location.search);
+    const incoming = [params.get("title"), params.get("text"), params.get("url")]
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+    if (!incoming) return;
+
+    $("postInput").value = incoming;
+    window.history.replaceState({}, "", window.location.pathname);
+    decodePost().catch((error) => {
+      $("resultCard").classList.add("empty");
+      setStatus(
+        error.message.includes("No invisible")
+          ? "Shared content received, but it did not include the post’s invisible layer. Copy and paste the complete post text instead."
+          : error.message,
+        "bad"
+      );
+    });
+  }
+
+  receiveSharedPost();
 </script>
 </body>
 </html>

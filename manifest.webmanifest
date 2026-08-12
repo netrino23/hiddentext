@@ -1,0 +1,61 @@
+{
+  "id": "./",
+  "name": "HiddenText — Invisible Messages",
+  "short_name": "HiddenText",
+  "description": "Hide and reveal invisible Unicode messages beneath ordinary text.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0d10",
+  "theme_color": "#0b0d10",
+  "categories": ["utilities", "productivity", "entertainment"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Hide a message",
+      "short_name": "Encode",
+      "description": "Create a HiddenText post.",
+      "url": "encoder.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Reveal a message",
+      "short_name": "Reveal",
+      "description": "Decode a HiddenText post.",
+      "url": "decoder.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "share_target": {
+    "action": "decoder.html",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "prefer_related_applications": false
+}
