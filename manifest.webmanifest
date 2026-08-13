@@ -2,7 +2,7 @@
   "id": "./",
   "name": "HiddenText — Invisible Messages",
   "short_name": "HiddenText",
-  "description": "Hide and reveal invisible Unicode messages beneath ordinary text.",
+  "description": "Hide and reveal text messages or HTTPS destinations beneath ordinary Unicode text.",
   "lang": "en",
   "start_url": "./",
   "scope": "./",
@@ -33,9 +33,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Hide a message",
+      "name": "Hide something",
       "short_name": "Encode",
-      "description": "Create a HiddenText post.",
+      "description": "Hide a text message or HTTPS link.",
       "url": "encoder.html",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },

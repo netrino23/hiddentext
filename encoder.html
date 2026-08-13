@@ -12,7 +12,7 @@
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <script src="pwa.js" defer></script>
-  <title>HiddenText — Encode a hidden message</title>
+  <title>HiddenText — Hide text or an HTTPS link</title>
   <style>
     :root {
       color-scheme: dark;
@@ -23,6 +23,7 @@
       --muted: #aeb8c4;
       --line: #313a46;
       --accent: #5dc7ff;
+      --accent-2: #8d7dff;
       --good: #55d98a;
       --bad: #ff7b7b;
     }
@@ -110,6 +111,64 @@
     textarea { min-height: 132px; resize: vertical; }
     #postOutput { min-height: 155px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
 
+    .content-type {
+      margin: 13px 0 0;
+      border: 0;
+      padding: 0;
+    }
+
+    .content-type legend {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .type-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #0b0d1066;
+    }
+
+    .type-option { margin: 0; }
+
+    .type-option input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .type-option > span {
+      display: flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .92rem;
+      font-weight: 800;
+      transition: border-color .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease;
+    }
+
+    .type-option input:checked + span {
+      border-color: #5dc7ff99;
+      background: linear-gradient(135deg, #5dc7ff18, #8d7dff1c);
+      color: var(--text);
+      box-shadow: 0 0 22px #5dc7ff18;
+    }
+
+    .type-option input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .content-fields[hidden] { display: none; }
+
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -185,9 +244,9 @@
     <a href="encoder.html" aria-current="page">Encode</a>
     <a href="decoder.html">Reveal</a>
   </nav>
-  <h1>HiddenText Encoder v2</h1>
-  <p class="lead">Create a clean cover post. The format metadata and your message live entirely inside an invisible Unicode layer.</p>
-  <p class="version-badge">V2 · NO VISIBLE METADATA</p>
+  <h1>HiddenText Encoder v3</h1>
+  <p class="lead">Hide a text message or an HTTPS destination inside an ordinary-looking post.</p>
+  <p class="version-badge">V3 · TEXT + HIDDEN LINKS</p>
 
   <section class="card" aria-labelledby="composeTitle">
     <h2 id="composeTitle">1. Write your message</h2>
@@ -198,8 +257,30 @@
     <label for="key">Public seed</label>
     <input id="key" type="text" value="Q7" maxlength="24">
 
-    <label for="secret">Hidden message</label>
-    <textarea id="secret">There is more beneath these words than you can see.</textarea>
+    <fieldset class="content-type">
+      <legend>Hidden content type</legend>
+      <div class="type-options">
+        <label class="type-option">
+          <input type="radio" name="contentType" value="text" checked>
+          <span><span aria-hidden="true">✦</span> Text message</span>
+        </label>
+        <label class="type-option">
+          <input type="radio" name="contentType" value="link">
+          <span><span aria-hidden="true">↗</span> HTTPS link</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div id="textContentFields" class="content-fields">
+      <label for="secret">Hidden message</label>
+      <textarea id="secret">There is more beneath these words than you can see.</textarea>
+    </div>
+
+    <div id="linkContentFields" class="content-fields" hidden>
+      <label for="hiddenUrl">Hidden HTTPS link</label>
+      <input id="hiddenUrl" type="url" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://example.com/secret">
+      <p class="note">The destination will remain invisible after decoding. Only a launch button will be shown.</p>
+    </div>
 
     <div class="actions">
       <button id="encodeButton" type="button">Create hidden post</button>
@@ -238,7 +319,8 @@
   const $ = (id) => document.getElementById(id);
   const utf8 = new TextEncoder();
   const textDecoder = new TextDecoder("utf-8", { fatal: true });
-  const V2_MAGIC = Uint8Array.of(0x48, 0x54, 0x58, 0x32); // "HTX2"
+  const V3_MAGIC = Uint8Array.of(0x48, 0x54, 0x58, 0x33); // "HTX3"
+  const CONTENT_TYPES = Object.freeze({ text: 0, link: 1 });
 
   function byteToSelector(byte) {
     return String.fromCodePoint(byte < 16 ? 0xFE00 + byte : 0xE0100 + byte - 16);
@@ -250,11 +332,11 @@
     return null;
   }
 
-  function findMagic(bytes) {
-    for (let start = 0; start <= bytes.length - V2_MAGIC.length; start += 1) {
+  function findMagic(bytes, magic) {
+    for (let start = 0; start <= bytes.length - magic.length; start += 1) {
       let matches = true;
-      for (let index = 0; index < V2_MAGIC.length; index += 1) {
-        if (bytes[start + index] !== V2_MAGIC[index]) {
+      for (let index = 0; index < magic.length; index += 1) {
+        if (bytes[start + index] !== magic[index]) {
           matches = false;
           break;
         }
@@ -356,23 +438,47 @@
     node.className = `status ${kind}`.trim();
   }
 
-  function buildV2Envelope(mode, key, payload) {
+  function normalizeHttpsUrl(value) {
+    const raw = value.trim();
+    if (!raw) throw new Error("Enter the HTTPS link you want to hide.");
+
+    let url;
+    try {
+      url = new URL(raw);
+    } catch {
+      throw new Error("Enter a complete, valid HTTPS link.");
+    }
+
+    if (url.protocol !== "https:") throw new Error("Only https:// links are allowed.");
+    if (!url.hostname || url.username || url.password) {
+      throw new Error("This HTTPS link cannot contain embedded credentials.");
+    }
+    return url.href;
+  }
+
+  function selectedContentType() {
+    return document.querySelector('input[name="contentType"]:checked')?.value ?? "text";
+  }
+
+  function buildV3Envelope(mode, contentType, key, payload) {
     const keyBytes = utf8.encode(key);
     if (keyBytes.length > 255) throw new Error("The public seed is too long.");
     if (payload.length > 65535) throw new Error("The payload is too large.");
+    if (!(contentType in CONTENT_TYPES)) throw new Error("Unknown hidden content type.");
 
-    const metadataBytes = 8 + keyBytes.length;
+    const metadataBytes = 9 + keyBytes.length;
     const envelope = new Uint8Array(metadataBytes + payload.length);
-    envelope.set(V2_MAGIC, 0);
+    envelope.set(V3_MAGIC, 0);
     envelope[4] = mode === "d" ? 1 : 0;
-    envelope[5] = keyBytes.length;
-    new DataView(envelope.buffer).setUint16(6, payload.length);
-    envelope.set(keyBytes, 8);
+    envelope[5] = CONTENT_TYPES[contentType];
+    envelope[6] = keyBytes.length;
+    new DataView(envelope.buffer).setUint16(7, payload.length);
+    envelope.set(keyBytes, 9);
     envelope.set(applyPublicSeed(payload, key), metadataBytes);
     return { envelope, metadataBytes };
   }
 
-  function parseV2Envelope(post) {
+  function parseV3Envelope(post) {
     const selectorBytes = [];
     for (const char of post) {
       const byte = selectorToByte(char.codePointAt(0));
@@ -380,36 +486,40 @@
     }
 
     const bytes = Uint8Array.from(selectorBytes);
-    const start = findMagic(bytes);
-    if (start < 0) throw new Error("No invisible v2 header was found.");
-    if (bytes.length < start + 8) throw new Error("The invisible v2 header is incomplete.");
+    const start = findMagic(bytes, V3_MAGIC);
+    if (start < 0) throw new Error("No invisible v3 header was found.");
+    if (bytes.length < start + 9) throw new Error("The invisible v3 header is incomplete.");
 
     const modeByte = bytes[start + 4];
-    if (![0, 1].includes(modeByte)) throw new Error("Unknown v2 payload mode.");
-    const keyLength = bytes[start + 5];
-    const payloadLength = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(start + 6);
-    const keyStart = start + 8;
+    if (![0, 1].includes(modeByte)) throw new Error("Unknown v3 payload mode.");
+    const contentTypeByte = bytes[start + 5];
+    const contentType = Object.keys(CONTENT_TYPES).find((type) => CONTENT_TYPES[type] === contentTypeByte);
+    if (!contentType) throw new Error("Unknown v3 content type.");
+    const keyLength = bytes[start + 6];
+    const payloadLength = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(start + 7);
+    const keyStart = start + 9;
     const payloadStart = keyStart + keyLength;
     const payloadEnd = payloadStart + payloadLength;
-    if (bytes.length < payloadEnd) throw new Error("The invisible v2 payload is incomplete.");
+    if (bytes.length < payloadEnd) throw new Error("The invisible v3 payload is incomplete.");
 
     return {
       mode: modeByte === 1 ? "d" : "n",
+      contentType,
       key: textDecoder.decode(bytes.slice(keyStart, payloadStart)),
       obscuredPayload: bytes.slice(payloadStart, payloadEnd)
     };
   }
 
-  function renderStats({ carrier, secret, payloadBytes, metadataBytes, post, mode }) {
+  function renderStats({ carrier, content, contentType, payloadBytes, metadataBytes, post, mode }) {
     const weighted = xWeightedLength(post);
     const items = [
       [wordCount(carrier), "visible words"],
-      [wordCount(secret), "hidden words"],
+      [contentType === "link" ? "HTTPS link" : wordCount(content), contentType === "link" ? "hidden content" : "hidden words"],
       [payloadBytes, "payload bytes"],
       [metadataBytes, "invisible metadata bytes"],
       [`${weighted}/280`, weighted <= 280 ? "fits a standard X post" : "exceeds a standard X post"],
       [mode === "d" ? "deflate" : "uncompressed", "payload mode"],
-      ["v2", "invisible format"]
+      ["v3", "typed invisible format"]
     ];
     $("stats").innerHTML = items.map(([value, label]) =>
       `<div class="stat"><b>${value}</b><span>${label}</span></div>`
@@ -418,11 +528,15 @@
 
   async function buildPost() {
     const carrier = $("carrier").value.trim();
-    const secret = $("secret").value.trim();
+    const contentType = selectedContentType();
+    const content = contentType === "link"
+      ? normalizeHttpsUrl($("hiddenUrl").value)
+      : $("secret").value.trim();
     const key = $("key").value || "0";
-    if (!carrier || !secret) throw new Error("Visible cover text and a hidden message are required.");
+    if (!carrier) throw new Error("Visible cover text is required.");
+    if (!content) throw new Error("Enter the text message you want to hide.");
 
-    const plaintext = utf8.encode(secret);
+    const plaintext = utf8.encode(content);
     let mode = "n";
     let payload = addCrc(plaintext);
 
@@ -439,29 +553,29 @@
       }
     }
 
-    const { envelope, metadataBytes } = buildV2Envelope(mode, key, payload);
+    const { envelope, metadataBytes } = buildV3Envelope(mode, contentType, key, payload);
     const invisible = Array.from(envelope, byteToSelector).join("");
     const post = `${carrier}${invisible}`;
     $("postOutput").value = post;
-    renderStats({ carrier, secret, payloadBytes: payload.length, metadataBytes, post, mode });
+    renderStats({ carrier, content, contentType, payloadBytes: payload.length, metadataBytes, post, mode });
 
     const weighted = xWeightedLength(post);
     setStatus(
       weighted <= 280
-        ? `Ready: ${wordCount(secret)} hidden words, X weight ${weighted}/280.`
-        : `Created, but the X weight is ${weighted}/280. Shorten the message.`,
+        ? `Ready: hidden ${contentType === "link" ? "HTTPS link" : `${wordCount(content)}-word message`}, X weight ${weighted}/280.`
+        : `Created, but the X weight is ${weighted}/280. Shorten the ${contentType === "link" ? "link" : "message"}.`,
       weighted <= 280 ? "good" : "bad"
     );
-    return { post, secret, key, mode };
+    return { post, content, contentType, key, mode };
   }
 
   async function decodeForTest(post) {
-    const packet = parseV2Envelope(post);
+    const packet = parseV3Envelope(post);
     const payload = applyPublicSeed(packet.obscuredPayload, packet.key);
     const plaintext = packet.mode === "d"
       ? await decompressDeflate(payload)
       : verifyAndRemoveCrc(payload);
-    return textDecoder.decode(plaintext);
+    return { content: textDecoder.decode(plaintext), contentType: packet.contentType };
   }
 
   function selectWholePost() {
@@ -509,8 +623,10 @@
   $("roundTripButton").addEventListener("click", () => withButton($("roundTripButton"), async () => {
     const result = await buildPost();
     const decoded = await decodeForTest(result.post);
-    if (decoded !== result.secret) throw new Error("The accuracy test returned different text.");
-    setStatus("Accuracy test passed: the message returned byte-for-byte identical.", "good");
+    if (decoded.content !== result.content || decoded.contentType !== result.contentType) {
+      throw new Error("The accuracy test returned different content.");
+    }
+    setStatus(`Accuracy test passed: the hidden ${result.contentType} returned byte-for-byte identical.`, "good");
   }));
 
   if (navigator.share) {
@@ -523,7 +639,13 @@
   }
 
   let timer;
-  for (const id of ["carrier", "key", "secret"]) {
+  function syncContentType() {
+    const contentType = selectedContentType();
+    $("textContentFields").hidden = contentType !== "text";
+    $("linkContentFields").hidden = contentType !== "link";
+  }
+
+  for (const id of ["carrier", "key", "secret", "hiddenUrl"]) {
     $(id).addEventListener("input", () => {
       clearTimeout(timer);
       timer = setTimeout(() => buildPost().catch((error) => {
@@ -533,6 +655,17 @@
     });
   }
 
+  for (const input of document.querySelectorAll('input[name="contentType"]')) {
+    input.addEventListener("change", () => {
+      syncContentType();
+      buildPost().catch((error) => {
+        $("postOutput").value = "";
+        setStatus(error.message, "bad");
+      });
+    });
+  }
+
+  syncContentType();
   buildPost().catch((error) => setStatus(error.message, "bad"));
 </script>
 </body>

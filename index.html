@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HiddenText">
-  <meta name="description" content="Hide and reveal invisible Unicode messages beneath ordinary text.">
+  <meta name="description" content="Hide text messages and HTTPS destinations beneath ordinary-looking Unicode text.">
   <meta property="og:title" content="HiddenText">
-  <meta property="og:description" content="What you see is not all that is there. Hide a message beneath ordinary text.">
+  <meta property="og:description" content="What you see is not all that is there. Hide a message or an HTTPS destination beneath ordinary text.">
   <meta property="og:type" content="website">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -342,12 +342,12 @@
     <main>
       <section class="hero">
         <div>
-          <p class="eyebrow">Experimental Unicode steganography · v2</p>
+          <p class="eyebrow">Experimental Unicode steganography · v3</p>
           <h1>What you see is <span>not all</span> that is there.</h1>
-          <p class="hero-copy">Hide a message beneath ordinary-looking text, copy it into a post, and reveal it later from the invisible Unicode layer.</p>
+          <p class="hero-copy">Hide a text message or an HTTPS destination beneath ordinary-looking words, then reveal the invisible payload later.</p>
           <div class="actions">
-            <a class="button" href="encoder.html">Hide a message</a>
-            <a class="button secondary" href="decoder.html">Reveal a message</a>
+            <a class="button" href="encoder.html">Hide something</a>
+            <a class="button secondary" href="decoder.html">Reveal it</a>
             <button class="button install" type="button" data-install-app aria-label="Install HiddenText on this device">
               <span aria-hidden="true">↓</span>
               Install app
@@ -361,7 +361,7 @@
           <div class="demo">
             <div class="demo-label">What everyone sees</div>
             <div class="demo-text">Just a beautiful day.</div>
-            <div class="demo-hint">An invisible message can travel with this exact text.</div>
+            <div class="demo-hint">An invisible message—or a doorway to the web—can travel with this exact text.</div>
           </div>
         </div>
       </section>
@@ -373,7 +373,7 @@
           <article class="card">
             <div class="number">01</div>
             <h3>Write</h3>
-            <p>Choose the visible cover text and the message you want to hide beneath it.</p>
+            <p>Choose the visible cover text, then hide either a message or an HTTPS link beneath it.</p>
           </article>
           <article class="card">
             <div class="number">02</div>
@@ -383,7 +383,7 @@
           <article class="card">
             <div class="number">03</div>
             <h3>Reveal</h3>
-            <p>Paste an exact digital copy into the decoder to recover the original message.</p>
+            <p>Paste an exact digital copy to recover the text or unlock a high-tech launch button.</p>
           </article>
         </div>
       </section>
@@ -395,7 +395,7 @@
     </main>
 
     <footer>
-      <span>HiddenText v2 · Open experimental format</span>
+      <span>HiddenText v3 · Open experimental format</span>
       <span>
         <a href="https://github.com/netrino23/hiddentext" target="_blank" rel="noopener noreferrer">View source</a>
         ·

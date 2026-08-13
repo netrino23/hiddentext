@@ -12,7 +12,7 @@
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <script src="pwa.js" defer></script>
-  <title>HiddenText — Reveal a hidden message</title>
+  <title>HiddenText — Reveal hidden content</title>
   <style>
     :root {
       color-scheme: dark;
@@ -23,6 +23,7 @@
       --muted: #aeb8c4;
       --line: #313a46;
       --accent: #5dc7ff;
+      --accent-2: #8d7dff;
       --good: #55d98a;
       --bad: #ff7b7b;
     }
@@ -111,6 +112,132 @@
 
     #postInput { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
     #decoded { min-height: 125px; }
+    .result-content[hidden] { display: none; }
+
+    .hidden-link-result {
+      display: grid;
+      min-height: 210px;
+      place-items: center;
+      overflow: hidden;
+      position: relative;
+      margin: 4px 0 18px;
+      border: 1px solid #5dc7ff42;
+      border-radius: 15px;
+      background:
+        linear-gradient(135deg, #5dc7ff0c, transparent 42%),
+        radial-gradient(circle at 78% 24%, #8d7dff1b, transparent 45%),
+        #090d12;
+      box-shadow: inset 0 0 45px #5dc7ff0a;
+      isolation: isolate;
+      animation: link-panel-reveal .65s cubic-bezier(.2, .8, .2, 1) both;
+    }
+
+    .hidden-link-result[hidden] { display: none; }
+
+    .hidden-link-result::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: 420px;
+      height: 420px;
+      border: 1px solid #5dc7ff1f;
+      border-radius: 50%;
+      background:
+        repeating-radial-gradient(circle, transparent 0 32px, #5dc7ff12 33px 34px),
+        conic-gradient(from 20deg, transparent, #5dc7ff1d, transparent 22%, #8d7dff1d, transparent 55%);
+      animation: link-radar 12s linear infinite;
+    }
+
+    .hidden-link-result::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: .22;
+      background: repeating-linear-gradient(0deg, transparent 0 5px, #5dc7ff12 6px);
+      pointer-events: none;
+    }
+
+    .hidden-link-button {
+      display: inline-flex;
+      min-width: min(340px, calc(100% - 34px));
+      min-height: 72px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 15px 18px;
+      background:
+        linear-gradient(#0c1720, #0a1118) padding-box,
+        linear-gradient(105deg, var(--accent), var(--accent-2), var(--good)) border-box;
+      color: var(--text);
+      box-shadow: 0 0 18px #5dc7ff33, inset 0 0 22px #5dc7ff0f;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+
+    .hidden-link-button::before {
+      content: "";
+      position: absolute;
+      inset: -60% auto -60% -25%;
+      width: 24%;
+      transform: rotate(16deg);
+      background: linear-gradient(90deg, transparent, #ffffff78, transparent);
+      animation: link-scan 2.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .hidden-link-button:hover {
+      transform: translateY(-3px) scale(1.015);
+      filter: brightness(1.12);
+      box-shadow: 0 0 28px #5dc7ff5c, 0 0 54px #8d7dff26, inset 0 0 26px #5dc7ff18;
+    }
+
+    .hidden-link-button:focus-visible { outline: 3px solid var(--good); outline-offset: 4px; }
+
+    .hidden-link-copy { display: grid; gap: 2px; }
+
+    .hidden-link-kicker {
+      color: var(--good);
+      font: 700 .66rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .13em;
+    }
+
+    .hidden-link-label {
+      font: 850 clamp(.92rem, 4vw, 1.08rem)/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .07em;
+    }
+
+    .hidden-link-icon {
+      display: grid;
+      flex: 0 0 40px;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border: 1px solid #5dc7ff80;
+      border-radius: 10px;
+      background: #5dc7ff12;
+      color: var(--accent);
+      font-size: 1.25rem;
+      box-shadow: 0 0 16px #5dc7ff2c;
+    }
+
+    @keyframes link-panel-reveal {
+      from { opacity: 0; transform: translateY(12px) scale(.98); filter: blur(5px); }
+      to { opacity: 1; transform: none; filter: none; }
+    }
+
+    @keyframes link-radar { to { transform: rotate(360deg); } }
+
+    @keyframes link-scan {
+      0%, 36% { left: -30%; opacity: 0; }
+      52% { opacity: .8; }
+      72%, 100% { left: 120%; opacity: 0; }
+    }
 
     .actions {
       display: flex;
@@ -172,6 +299,13 @@
     }
 
     .empty { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hidden-link-result,
+      .hidden-link-result::before,
+      .hidden-link-button::before { animation: none; }
+      .hidden-link-button { transition: none; }
+    }
   </style>
 </head>
 <body>
@@ -181,9 +315,9 @@
     <a href="encoder.html">Encode</a>
     <a href="decoder.html" aria-current="page">Reveal</a>
   </nav>
-  <h1>HiddenText Decoder v2</h1>
-  <p class="lead">Reveal the invisible message inside an exact digital copy of a HiddenText post.</p>
-  <p class="version-badge">V2 · ALSO READS LEGACY V1 POSTS</p>
+  <h1>HiddenText Decoder v3</h1>
+  <p class="lead">Reveal hidden text or unlock an invisible HTTPS destination inside an exact copy of a HiddenText post.</p>
+  <p class="version-badge">V3 · ALSO READS V1 + V2 POSTS</p>
 
   <section class="card" aria-labelledby="pasteTitle">
     <h2 id="pasteTitle">1. Paste the post</h2>
@@ -191,7 +325,7 @@
     <textarea id="postInput" spellcheck="false" placeholder="Paste the exact post text here…"></textarea>
 
     <div class="actions">
-      <button id="decodeButton" type="button">Reveal message</button>
+      <button id="decodeButton" type="button">Reveal hidden content</button>
       <button id="pasteButton" class="secondary" type="button">Paste from clipboard</button>
       <button id="clearButton" class="secondary" type="button">Clear</button>
     </div>
@@ -201,8 +335,21 @@
 
   <section id="resultCard" class="card empty" aria-labelledby="resultTitle">
     <h2 id="resultTitle">2. Hidden message</h2>
-    <label for="decoded">Exact result</label>
-    <textarea id="decoded" readonly></textarea>
+
+    <div id="textResult" class="result-content">
+      <label for="decoded">Exact result</label>
+      <textarea id="decoded" readonly></textarea>
+    </div>
+
+    <div id="linkResult" class="hidden-link-result result-content" hidden>
+      <a id="hiddenLinkButton" class="hidden-link-button" target="_blank" rel="noopener noreferrer external" aria-label="Open the hidden HTTPS link in a new tab">
+        <span class="hidden-link-copy">
+          <span class="hidden-link-kicker">HTTPS CHANNEL // READY</span>
+          <span class="hidden-link-label">Open hidden link</span>
+        </span>
+        <span class="hidden-link-icon" aria-hidden="true">↗</span>
+      </a>
+    </div>
 
     <div id="details" class="details"></div>
 
@@ -222,6 +369,8 @@
   const utf8 = new TextEncoder();
   const textDecoder = new TextDecoder("utf-8", { fatal: true });
   const V2_MAGIC = Uint8Array.of(0x48, 0x54, 0x58, 0x32); // "HTX2"
+  const V3_MAGIC = Uint8Array.of(0x48, 0x54, 0x58, 0x33); // "HTX3"
+  const CONTENT_TYPES = Object.freeze({ 0: "text", 1: "link" });
 
   function selectorToByte(codePoint) {
     if (codePoint >= 0xFE00 && codePoint <= 0xFE0F) return codePoint - 0xFE00;
@@ -301,11 +450,11 @@
     node.className = `status ${kind}`.trim();
   }
 
-  function findMagic(bytes) {
-    for (let start = 0; start <= bytes.length - V2_MAGIC.length; start += 1) {
+  function findMagic(bytes, magic) {
+    for (let start = 0; start <= bytes.length - magic.length; start += 1) {
       let matches = true;
-      for (let index = 0; index < V2_MAGIC.length; index += 1) {
-        if (bytes[start + index] !== V2_MAGIC[index]) {
+      for (let index = 0; index < magic.length; index += 1) {
+        if (bytes[start + index] !== magic[index]) {
           matches = false;
           break;
         }
@@ -313,6 +462,52 @@
       if (matches) return start;
     }
     return -1;
+  }
+
+  function parseV3(text) {
+    const characters = Array.from(text);
+    const selectors = [];
+    for (let characterIndex = 0; characterIndex < characters.length; characterIndex += 1) {
+      const char = characters[characterIndex];
+      const byte = selectorToByte(char.codePointAt(0));
+      if (byte !== null) selectors.push({ byte, characterIndex });
+    }
+
+    const bytes = Uint8Array.from(selectors, ({ byte }) => byte);
+    const start = findMagic(bytes, V3_MAGIC);
+    if (start < 0) return null;
+    if (bytes.length < start + 9) throw new Error("The invisible v3 header is incomplete.");
+
+    const modeByte = bytes[start + 4];
+    if (![0, 1].includes(modeByte)) throw new Error("Unknown v3 payload mode.");
+    const contentType = CONTENT_TYPES[bytes[start + 5]];
+    if (!contentType) throw new Error("Unknown v3 content type.");
+    const keyLength = bytes[start + 6];
+    const payloadLength = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(start + 7);
+    const keyStart = start + 9;
+    const payloadStart = keyStart + keyLength;
+    const payloadEnd = payloadStart + payloadLength;
+    if (bytes.length < payloadEnd) throw new Error("The invisible payload was not copied in full.");
+
+    const envelopeCharacterIndexes = new Set(
+      selectors.slice(start, payloadEnd).map(({ characterIndex }) => characterIndex)
+    );
+    const visibleText = characters.filter((char, characterIndex) =>
+      !envelopeCharacterIndexes.has(characterIndex)
+    ).join("").trim();
+
+    return {
+      version: 3,
+      header: {
+        v: 3,
+        z: modeByte === 1 ? "d" : "n",
+        t: contentType,
+        k: textDecoder.decode(bytes.slice(keyStart, payloadStart))
+      },
+      obscuredPayload: bytes.slice(payloadStart, payloadEnd),
+      hiddenBytes: 9 + keyLength + payloadLength,
+      visibleText
+    };
   }
 
   function parseV2(text) {
@@ -325,7 +520,7 @@
     }
 
     const bytes = Uint8Array.from(selectors, ({ byte }) => byte);
-    const start = findMagic(bytes);
+    const start = findMagic(bytes, V2_MAGIC);
     if (start < 0) return null;
     if (bytes.length < start + 8) throw new Error("The invisible v2 header is incomplete.");
 
@@ -352,6 +547,7 @@
       header: {
         v: 2,
         z: modeByte === 1 ? "d" : "n",
+        t: "text",
         k: textDecoder.decode(bytes.slice(keyStart, payloadStart))
       },
       obscuredPayload: bytes.slice(payloadStart, payloadEnd),
@@ -392,7 +588,7 @@
       }
       start = text.indexOf('{"v":1,', start + 1);
     }
-    throw new Error("No invisible v2 header or legacy v1 JSON header was found.");
+    throw new Error("No invisible v3/v2 header or legacy v1 JSON header was found.");
   }
 
   function parseLegacyV1(text) {
@@ -414,13 +610,28 @@
     };
   }
 
-  function renderDetails(version, header, hiddenBytes, message) {
+  function normalizeDecodedHttpsUrl(value) {
+    let url;
+    try {
+      url = new URL(value);
+    } catch {
+      throw new Error("The hidden link is not a valid HTTPS destination.");
+    }
+    if (url.protocol !== "https:" || !url.hostname || url.username || url.password) {
+      throw new Error("The hidden destination was blocked because it is not a valid HTTPS link.");
+    }
+    return url.href;
+  }
+
+  function renderDetails(version, header, hiddenBytes, content) {
+    const contentType = header.t ?? "text";
     const items = [
-      [`v${version}`, version === 2 ? "invisible format" : "legacy JSON format"],
+      [`v${version}`, version === 1 ? "legacy JSON format" : "invisible format"],
+      [contentType === "link" ? "HTTPS link" : "text message", "content type"],
       [header.z === "d" ? "deflate" : "uncompressed", "payload mode"],
       [String(header.k ?? "0"), "public seed"],
       [hiddenBytes, "hidden bytes"],
-      [wordCount(message), "recovered words"]
+      [contentType === "link" ? "ready" : wordCount(content), contentType === "link" ? "launch state" : "recovered words"]
     ];
     $("details").innerHTML = items.map(([value, label]) =>
       `<div class="detail"><b>${value}</b><span>${label}</span></div>`
@@ -431,22 +642,45 @@
     const source = $("postInput").value;
     if (!source.trim()) throw new Error("Paste the complete post first.");
 
-    const packet = parseV2(source) ?? parseLegacyV1(source);
+    const packet = parseV3(source) ?? parseV2(source) ?? parseLegacyV1(source);
     const payload = applyPublicSeed(packet.obscuredPayload, packet.header.k ?? "0");
     const plaintext = packet.header.z === "d"
       ? await decompressDeflate(payload)
       : verifyAndRemoveCrc(payload);
-    const message = textDecoder.decode(plaintext);
+    const content = textDecoder.decode(plaintext);
+    const contentType = packet.header.t ?? "text";
 
-    $("decoded").value = message;
+    if (contentType === "link") {
+      $("hiddenLinkButton").href = normalizeDecodedHttpsUrl(content);
+      $("textResult").hidden = true;
+      $("linkResult").hidden = false;
+      $("decoded").value = "";
+      $("resultTitle").textContent = "2. Hidden link unlocked";
+    } else {
+      $("hiddenLinkButton").removeAttribute("href");
+      $("textResult").hidden = false;
+      $("linkResult").hidden = true;
+      $("decoded").value = content;
+      $("resultTitle").textContent = "2. Hidden message";
+    }
     $("visibleText").value = packet.visibleText;
-    renderDetails(packet.version, packet.header, packet.hiddenBytes, message);
+    renderDetails(packet.version, packet.header, packet.hiddenBytes, content);
     $("resultCard").classList.remove("empty");
     setStatus(
-      `Success: recovered exactly ${wordCount(message)} words from ${packet.hiddenBytes} hidden bytes.`,
+      contentType === "link"
+        ? `Success: unlocked a hidden HTTPS destination from ${packet.hiddenBytes} invisible bytes.`
+        : `Success: recovered exactly ${wordCount(content)} words from ${packet.hiddenBytes} hidden bytes.`,
       "good"
     );
-    return message;
+    return { content, contentType };
+  }
+
+  function hideResultCard() {
+    $("resultCard").classList.add("empty");
+    $("hiddenLinkButton").removeAttribute("href");
+    $("textResult").hidden = false;
+    $("linkResult").hidden = true;
+    $("resultTitle").textContent = "2. Hidden message";
   }
 
   function clearAll() {
@@ -454,7 +688,7 @@
     $("decoded").value = "";
     $("visibleText").value = "";
     $("details").innerHTML = "";
-    $("resultCard").classList.add("empty");
+    hideResultCard();
     setStatus("Waiting for a HiddenText post.");
     $("postInput").focus();
   }
@@ -464,7 +698,7 @@
     try {
       await task();
     } catch (error) {
-      $("resultCard").classList.add("empty");
+      hideResultCard();
       setStatus(error?.message || String(error), "bad");
     } finally {
       button.disabled = false;
@@ -491,7 +725,7 @@
       return;
     }
     timer = setTimeout(() => decodePost().catch((error) => {
-      $("resultCard").classList.add("empty");
+      hideResultCard();
       setStatus(error.message, "bad");
     }), 180);
   });
@@ -507,7 +741,7 @@
     $("postInput").value = incoming;
     window.history.replaceState({}, "", window.location.pathname);
     decodePost().catch((error) => {
-      $("resultCard").classList.add("empty");
+      hideResultCard();
       setStatus(
         error.message.includes("No invisible")
           ? "Shared content received, but it did not include the post’s invisible layer. Copy and paste the complete post text instead."
