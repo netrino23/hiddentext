@@ -11,6 +11,8 @@ HiddenText is an experimental, client-side steganography tool. It embeds UTF-8 c
 ## Features
 
 - Typed v3 posts for hidden text messages and HTTPS links
+- Single-card morphing decoder with scan, dissolve, and in-place reveal effects
+- Reduced-motion support for the decoder transition
 - High-tech link reveal button with no visible destination text
 - HTTPS-only validation and deliberate new-tab opening
 - Clean posts with no visible JSON or technical header
@@ -30,7 +32,7 @@ HiddenText is an experimental, client-side steganography tool. It embeds UTF-8 c
 1. Open the [Encoder](https://netrino23.github.io/hiddentext/encoder.html).
 2. Enter visible cover text, a public seed, and choose **Text message** or **HTTPS link**.
 3. Copy the generated post exactly.
-4. Paste an exact digital copy into the [Decoder](https://netrino23.github.io/hiddentext/decoder.html). Text is shown exactly; a hidden link becomes a launch button and opens only after a deliberate tap.
+4. Paste an exact digital copy into the [Decoder](https://netrino23.github.io/hiddentext/decoder.html). The input dissolves in place: text is revealed inside the same card, while a hidden link becomes a launch button and opens only after a deliberate tap.
 
 ## Repository structure
 

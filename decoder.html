@@ -90,6 +90,50 @@
       box-shadow: 0 16px 50px rgb(0 0 0 / 18%);
     }
 
+    .decoder-card {
+      min-height: 390px;
+      overflow: hidden;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .decoder-card::after {
+      content: "";
+      position: absolute;
+      inset: -18% -6%;
+      z-index: 5;
+      opacity: 0;
+      transform: translateY(-115%);
+      background: linear-gradient(
+        180deg,
+        transparent 0 43%,
+        #5dc7ff0a 46%,
+        #b7ebffcc 50%,
+        #8d7dff3d 54%,
+        transparent 59%
+      );
+      filter: drop-shadow(0 0 13px #5dc7ff);
+      pointer-events: none;
+    }
+
+    .decoder-card.is-scanning::after { animation: decoder-card-scan .58s cubic-bezier(.3, .7, .2, 1) both; }
+
+    .decoder-stage { transform-origin: center top; }
+    .decoder-stage[hidden] { display: none; }
+    .decoder-stage.stage-leaving { animation: decoder-stage-out .28s ease both; pointer-events: none; }
+    .decoder-stage.stage-entering { animation: decoder-stage-in .48s cubic-bezier(.16, 1, .3, 1) both; }
+
+    .sr-only {
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      margin: -1px;
+      clip: rect(0, 0, 0, 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
     label {
       display: block;
       margin: 13px 0 6px;
@@ -111,8 +155,52 @@
     }
 
     #postInput { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
-    #decoded { min-height: 125px; }
     .result-content[hidden] { display: none; }
+
+    .text-result-shell {
+      min-height: 210px;
+      overflow: hidden;
+      position: relative;
+      margin: 4px 0 18px;
+      border: 1px solid #55d98a4a;
+      border-radius: 15px;
+      padding: 24px;
+      background:
+        linear-gradient(135deg, #55d98a0c, transparent 45%),
+        radial-gradient(circle at 86% 12%, #5dc7ff17, transparent 42%),
+        #090d12;
+      box-shadow: inset 0 0 45px #55d98a09;
+    }
+
+    .text-result-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .2;
+      background: repeating-linear-gradient(0deg, transparent 0 5px, #55d98a12 6px);
+      pointer-events: none;
+    }
+
+    .message-kicker {
+      color: var(--good);
+      font: 750 .68rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .decoded-message {
+      max-height: 52vh;
+      overflow: auto;
+      position: relative;
+      z-index: 1;
+      margin-top: 17px;
+      color: var(--text);
+      font-size: clamp(1.05rem, 4.2vw, 1.28rem);
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      animation: decoded-message-reveal .72s .08s cubic-bezier(.16, 1, .3, 1) both;
+    }
 
     .hidden-link-result {
       display: grid;
@@ -239,6 +327,27 @@
       72%, 100% { left: 120%; opacity: 0; }
     }
 
+    @keyframes decoder-card-scan {
+      0% { opacity: 0; transform: translateY(-115%); }
+      14% { opacity: 1; }
+      82% { opacity: .9; }
+      100% { opacity: 0; transform: translateY(115%); }
+    }
+
+    @keyframes decoder-stage-out {
+      to { opacity: 0; transform: scale(.975); filter: blur(7px); }
+    }
+
+    @keyframes decoder-stage-in {
+      from { opacity: 0; transform: translateY(12px) scale(.98); filter: blur(6px); }
+      to { opacity: 1; transform: none; filter: none; }
+    }
+
+    @keyframes decoded-message-reveal {
+      from { opacity: 0; transform: translateY(9px); filter: blur(8px); clip-path: inset(0 0 100% 0); }
+      to { opacity: 1; transform: none; filter: none; clip-path: inset(0); }
+    }
+
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -266,6 +375,8 @@
 
     button:disabled { opacity: .58; cursor: wait; }
 
+    .reveal-actions { justify-content: center; margin-top: 18px; }
+
     .status {
       min-height: 1.5em;
       margin-top: 12px;
@@ -282,6 +393,25 @@
       margin-top: 14px;
     }
 
+    .technical-details {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0b0d1066;
+    }
+
+    .technical-details summary {
+      padding: 12px 14px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .86rem;
+      font-weight: 780;
+      list-style-position: inside;
+    }
+
+    .technical-details[open] summary { border-bottom: 1px solid var(--line); color: var(--text); }
+    .technical-details-body { padding: 0 14px 14px; }
+
     .detail {
       min-width: 0;
       padding: 11px;
@@ -297,10 +427,10 @@
       color: var(--muted);
       font-size: .88rem;
     }
-
-    .empty { display: none; }
-
     @media (prefers-reduced-motion: reduce) {
+      .decoder-card::after,
+      .decoder-stage,
+      .decoded-message,
       .hidden-link-result,
       .hidden-link-result::before,
       .hidden-link-button::before { animation: none; }
@@ -319,43 +449,56 @@
   <p class="lead">Reveal hidden text or unlock an invisible HTTPS destination inside an exact copy of a HiddenText post.</p>
   <p class="version-badge">V3 · ALSO READS V1 + V2 POSTS</p>
 
-  <section class="card" aria-labelledby="pasteTitle">
-    <h2 id="pasteTitle">1. Paste the post</h2>
-    <label for="postInput">The complete post text</label>
-    <textarea id="postInput" spellcheck="false" placeholder="Paste the exact post text here…"></textarea>
+  <section id="decoderCard" class="card decoder-card" aria-labelledby="stageTitle">
+    <h2 id="stageTitle" tabindex="-1">1. Paste the post</h2>
 
-    <div class="actions">
-      <button id="decodeButton" type="button">Reveal hidden content</button>
-      <button id="pasteButton" class="secondary" type="button">Paste from clipboard</button>
-      <button id="clearButton" class="secondary" type="button">Clear</button>
-    </div>
-    <p id="decodeStatus" class="status" aria-live="polite">Waiting for a HiddenText post.</p>
-    <p class="note">If your browser blocks automatic clipboard access, press and hold inside the field and choose “Paste”. Decoding starts automatically.</p>
-  </section>
+    <div id="inputStage" class="decoder-stage">
+      <label for="postInput">The complete post text</label>
+      <textarea id="postInput" spellcheck="false" placeholder="Paste the exact post text here…"></textarea>
 
-  <section id="resultCard" class="card empty" aria-labelledby="resultTitle">
-    <h2 id="resultTitle">2. Hidden message</h2>
-
-    <div id="textResult" class="result-content">
-      <label for="decoded">Exact result</label>
-      <textarea id="decoded" readonly></textarea>
+      <div class="actions">
+        <button id="decodeButton" type="button">Reveal hidden content</button>
+        <button id="pasteButton" class="secondary" type="button">Paste from clipboard</button>
+        <button id="clearButton" class="secondary" type="button">Clear</button>
+      </div>
+      <p id="decodeStatus" class="status">Waiting for a HiddenText post.</p>
+      <p class="note">If your browser blocks automatic clipboard access, press and hold inside the field and choose “Paste”. Decoding starts automatically.</p>
     </div>
 
-    <div id="linkResult" class="hidden-link-result result-content" hidden>
-      <a id="hiddenLinkButton" class="hidden-link-button" target="_blank" rel="noopener noreferrer external" aria-label="Open the hidden HTTPS link in a new tab">
-        <span class="hidden-link-copy">
-          <span class="hidden-link-kicker">HTTPS CHANNEL // READY</span>
-          <span class="hidden-link-label">Open hidden link</span>
-        </span>
-        <span class="hidden-link-icon" aria-hidden="true">↗</span>
-      </a>
+    <div id="revealStage" class="decoder-stage" hidden>
+      <div id="textResult" class="result-content">
+        <div class="text-result-shell">
+          <p class="message-kicker">Payload decrypted // text</p>
+          <div id="decoded" class="decoded-message" role="document" tabindex="0"></div>
+        </div>
+      </div>
+
+      <div id="linkResult" class="hidden-link-result result-content" hidden>
+        <a id="hiddenLinkButton" class="hidden-link-button" target="_blank" rel="noopener noreferrer external" aria-label="Open the hidden HTTPS link in a new tab">
+          <span class="hidden-link-copy">
+            <span class="hidden-link-kicker">HTTPS CHANNEL // READY</span>
+            <span class="hidden-link-label">Open hidden link</span>
+          </span>
+          <span class="hidden-link-icon" aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <details id="technicalDetails" class="technical-details">
+        <summary>Technical details</summary>
+        <div class="technical-details-body">
+          <div id="details" class="details"></div>
+          <label for="visibleText">Visible cover text found</label>
+          <textarea id="visibleText" readonly></textarea>
+          <p class="note">The seed is public. This is steganographic concealment, not secure encryption.</p>
+        </div>
+      </details>
+
+      <div class="actions reveal-actions">
+        <button id="decodeAnotherButton" class="secondary" type="button">Decode another</button>
+      </div>
     </div>
 
-    <div id="details" class="details"></div>
-
-    <label for="visibleText">Visible cover text found</label>
-    <textarea id="visibleText" readonly></textarea>
-    <p class="note">The seed is public. This is steganographic concealment, not secure encryption.</p>
+    <p id="decoderAnnouncement" class="sr-only" aria-live="polite"></p>
   </section>
 
   <section class="card" aria-labelledby="limitsTitle">
@@ -371,6 +514,9 @@
   const V2_MAGIC = Uint8Array.of(0x48, 0x54, 0x58, 0x32); // "HTX2"
   const V3_MAGIC = Uint8Array.of(0x48, 0x54, 0x58, 0x33); // "HTX3"
   const CONTENT_TYPES = Object.freeze({ 0: "text", 1: "link" });
+  let timer;
+  let decodeRunId = 0;
+  let morphRunId = 0;
 
   function selectorToByte(codePoint) {
     if (codePoint >= 0xFE00 && codePoint <= 0xFE0F) return codePoint - 0xFE00;
@@ -448,6 +594,82 @@
     const node = $("decodeStatus");
     node.textContent = message;
     node.className = `status ${kind}`.trim();
+    $("decoderAnnouncement").textContent = message;
+  }
+
+  function prefersReducedMotion() {
+    return globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  }
+
+  function waitForMotion(milliseconds) {
+    return prefersReducedMotion()
+      ? Promise.resolve()
+      : new Promise((resolve) => setTimeout(resolve, milliseconds));
+  }
+
+  function focusWithoutScroll(node) {
+    try {
+      node.focus({ preventScroll: true });
+    } catch {
+      node.focus();
+    }
+  }
+
+  async function morphStages(from, to, title) {
+    const runId = ++morphRunId;
+    const card = $("decoderCard");
+    const reducedMotion = prefersReducedMotion();
+
+    from.classList.remove("stage-entering");
+    to.classList.remove("stage-leaving", "stage-entering");
+    card.classList.remove("is-scanning");
+    if (!reducedMotion) {
+      void card.offsetWidth;
+      card.classList.add("is-scanning");
+      from.classList.add("stage-leaving");
+    }
+
+    await waitForMotion(280);
+    if (runId !== morphRunId) return false;
+
+    from.hidden = true;
+    from.classList.remove("stage-leaving");
+    $("stageTitle").textContent = title;
+    to.hidden = false;
+    if (!reducedMotion) to.classList.add("stage-entering");
+
+    await waitForMotion(480);
+    if (runId !== morphRunId) return false;
+
+    to.classList.remove("stage-entering");
+    card.classList.remove("is-scanning");
+    focusWithoutScroll($("stageTitle"));
+    return true;
+  }
+
+  async function showRevealStage(contentType) {
+    const title = contentType === "link" ? "Hidden link unlocked" : "Hidden message revealed";
+    if ($("inputStage").hidden) {
+      $("stageTitle").textContent = title;
+      $("revealStage").hidden = false;
+      focusWithoutScroll($("stageTitle"));
+      return true;
+    }
+    return morphStages($("inputStage"), $("revealStage"), title);
+  }
+
+  async function showInputStage({ animate = false } = {}) {
+    if (!animate || $("revealStage").hidden) {
+      morphRunId += 1;
+      $("decoderCard").classList.remove("is-scanning");
+      $("inputStage").classList.remove("stage-leaving", "stage-entering");
+      $("revealStage").classList.remove("stage-leaving", "stage-entering");
+      $("revealStage").hidden = true;
+      $("inputStage").hidden = false;
+      $("stageTitle").textContent = "1. Paste the post";
+      return true;
+    }
+    return morphStages($("revealStage"), $("inputStage"), "1. Paste the post");
   }
 
   function findMagic(bytes, magic) {
@@ -633,12 +855,22 @@
       [hiddenBytes, "hidden bytes"],
       [contentType === "link" ? "ready" : wordCount(content), contentType === "link" ? "launch state" : "recovered words"]
     ];
-    $("details").innerHTML = items.map(([value, label]) =>
-      `<div class="detail"><b>${value}</b><span>${label}</span></div>`
-    ).join("");
+    const nodes = items.map(([value, label]) => {
+      const detail = document.createElement("div");
+      const strong = document.createElement("b");
+      const caption = document.createElement("span");
+      detail.className = "detail";
+      strong.textContent = String(value);
+      caption.textContent = label;
+      detail.append(strong, caption);
+      return detail;
+    });
+    $("details").replaceChildren(...nodes);
   }
 
   async function decodePost() {
+    clearTimeout(timer);
+    const runId = ++decodeRunId;
     const source = $("postInput").value;
     if (!source.trim()) throw new Error("Paste the complete post first.");
 
@@ -647,6 +879,8 @@
     const plaintext = packet.header.z === "d"
       ? await decompressDeflate(payload)
       : verifyAndRemoveCrc(payload);
+    if (runId !== decodeRunId) return null;
+
     const content = textDecoder.decode(plaintext);
     const contentType = packet.header.t ?? "text";
 
@@ -654,43 +888,45 @@
       $("hiddenLinkButton").href = normalizeDecodedHttpsUrl(content);
       $("textResult").hidden = true;
       $("linkResult").hidden = false;
-      $("decoded").value = "";
-      $("resultTitle").textContent = "2. Hidden link unlocked";
+      $("decoded").textContent = "";
     } else {
       $("hiddenLinkButton").removeAttribute("href");
       $("textResult").hidden = false;
       $("linkResult").hidden = true;
-      $("decoded").value = content;
-      $("resultTitle").textContent = "2. Hidden message";
+      $("decoded").textContent = content;
     }
     $("visibleText").value = packet.visibleText;
+    $("technicalDetails").open = false;
     renderDetails(packet.version, packet.header, packet.hiddenBytes, content);
-    $("resultCard").classList.remove("empty");
     setStatus(
       contentType === "link"
         ? `Success: unlocked a hidden HTTPS destination from ${packet.hiddenBytes} invisible bytes.`
         : `Success: recovered exactly ${wordCount(content)} words from ${packet.hiddenBytes} hidden bytes.`,
       "good"
     );
+    await showRevealStage(contentType);
+    if (runId !== decodeRunId) return null;
     return { content, contentType };
   }
 
-  function hideResultCard() {
-    $("resultCard").classList.add("empty");
+  function resetRevealData() {
     $("hiddenLinkButton").removeAttribute("href");
     $("textResult").hidden = false;
     $("linkResult").hidden = true;
-    $("resultTitle").textContent = "2. Hidden message";
+    $("decoded").textContent = "";
+    $("visibleText").value = "";
+    $("details").replaceChildren();
+    $("technicalDetails").open = false;
   }
 
-  function clearAll() {
+  async function clearAll({ animate = false } = {}) {
+    decodeRunId += 1;
+    clearTimeout(timer);
     $("postInput").value = "";
-    $("decoded").value = "";
-    $("visibleText").value = "";
-    $("details").innerHTML = "";
-    hideResultCard();
+    await showInputStage({ animate });
+    resetRevealData();
     setStatus("Waiting for a HiddenText post.");
-    $("postInput").focus();
+    focusWithoutScroll($("postInput"));
   }
 
   async function withButton(button, task) {
@@ -698,7 +934,7 @@
     try {
       await task();
     } catch (error) {
-      hideResultCard();
+      resetRevealData();
       setStatus(error?.message || String(error), "bad");
     } finally {
       button.disabled = false;
@@ -706,7 +942,13 @@
   }
 
   $("decodeButton").addEventListener("click", () => withButton($("decodeButton"), decodePost));
-  $("clearButton").addEventListener("click", clearAll);
+  $("clearButton").addEventListener("click", () => void clearAll());
+  $("decodeAnotherButton").addEventListener("click", async () => {
+    const button = $("decodeAnotherButton");
+    button.disabled = true;
+    await clearAll({ animate: true });
+    button.disabled = false;
+  });
 
   $("pasteButton").addEventListener("click", () => withButton($("pasteButton"), async () => {
     if (!navigator.clipboard?.readText || !globalThis.isSecureContext) {
@@ -717,15 +959,15 @@
     await decodePost();
   }));
 
-  let timer;
   $("postInput").addEventListener("input", () => {
     clearTimeout(timer);
+    decodeRunId += 1;
     if (!$("postInput").value.trim()) {
-      clearAll();
+      void clearAll();
       return;
     }
     timer = setTimeout(() => decodePost().catch((error) => {
-      hideResultCard();
+      resetRevealData();
       setStatus(error.message, "bad");
     }), 180);
   });
@@ -741,7 +983,7 @@
     $("postInput").value = incoming;
     window.history.replaceState({}, "", window.location.pathname);
     decodePost().catch((error) => {
-      hideResultCard();
+      resetRevealData();
       setStatus(
         error.message.includes("No invisible")
           ? "Shared content received, but it did not include the post’s invisible layer. Copy and paste the complete post text instead."
