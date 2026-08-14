@@ -13,6 +13,7 @@ HiddenText is an experimental, client-side steganography tool. It embeds UTF-8 c
 - Typed v3 posts for hidden text messages and HTTPS links
 - Single-card morphing decoder with scan, dissolve, and in-place reveal effects
 - Reduced-motion support for the decoder transition
+- Smart HTTPS fallback for standalone links encoded as text in v1, v2, or v3 posts
 - High-tech link reveal button with no visible destination text
 - HTTPS-only validation and deliberate new-tab opening
 - Clean posts with no visible JSON or technical header
@@ -68,6 +69,8 @@ The invisible byte envelope contains:
 The v3 signature is `HTX3`. Bytes are mapped to the 256 Unicode Variation Selectors. The decoder scans the copied text for the v3 signature, reads the envelope and content type, reverses the public-seed transformation, decompresses when required, and decodes the original UTF-8 content. It retains separate parsers for older `HTX2` posts and legacy v1 JSON-header posts.
 
 Hidden links must parse as complete `https://` URLs and may not contain embedded usernames or passwords. The decoder never navigates automatically. It validates the recovered destination and exposes it only through a fixed **Open hidden link** control with `target="_blank"` and `rel="noopener noreferrer"`. The URL is not rendered as page text, although the destination naturally becomes visible in the browser address bar after it opens.
+
+For compatibility and error recovery, the decoder also checks text payloads after recovery. If the entire trimmed payload is one valid HTTPS URL with no whitespace or embedded credentials, it is treated as an auto-detected hidden link. Text that merely contains a URL alongside other words remains a normal text message.
 
 ## Important limitations
 

@@ -845,11 +845,20 @@
     return url.href;
   }
 
-  function renderDetails(version, header, hiddenBytes, content) {
-    const contentType = header.t ?? "text";
+  function detectStandaloneHttpsUrl(value) {
+    const candidate = value.trim();
+    if (!candidate || /\s/u.test(candidate)) return null;
+    try {
+      return normalizeDecodedHttpsUrl(candidate);
+    } catch {
+      return null;
+    }
+  }
+
+  function renderDetails(version, header, hiddenBytes, content, contentType, autoDetectedLink) {
     const items = [
       [`v${version}`, version === 1 ? "legacy JSON format" : "invisible format"],
-      [contentType === "link" ? "HTTPS link" : "text message", "content type"],
+      [contentType === "link" ? `HTTPS link${autoDetectedLink ? " (detected)" : ""}` : "text message", "content type"],
       [header.z === "d" ? "deflate" : "uncompressed", "payload mode"],
       [String(header.k ?? "0"), "public seed"],
       [hiddenBytes, "hidden bytes"],
@@ -882,10 +891,13 @@
     if (runId !== decodeRunId) return null;
 
     const content = textDecoder.decode(plaintext);
-    const contentType = packet.header.t ?? "text";
+    const declaredContentType = packet.header.t ?? "text";
+    const detectedUrl = declaredContentType === "text" ? detectStandaloneHttpsUrl(content) : null;
+    const autoDetectedLink = Boolean(detectedUrl);
+    const contentType = autoDetectedLink ? "link" : declaredContentType;
 
     if (contentType === "link") {
-      $("hiddenLinkButton").href = normalizeDecodedHttpsUrl(content);
+      $("hiddenLinkButton").href = detectedUrl ?? normalizeDecodedHttpsUrl(content);
       $("textResult").hidden = true;
       $("linkResult").hidden = false;
       $("decoded").textContent = "";
@@ -897,16 +909,16 @@
     }
     $("visibleText").value = packet.visibleText;
     $("technicalDetails").open = false;
-    renderDetails(packet.version, packet.header, packet.hiddenBytes, content);
+    renderDetails(packet.version, packet.header, packet.hiddenBytes, content, contentType, autoDetectedLink);
     setStatus(
       contentType === "link"
-        ? `Success: unlocked a hidden HTTPS destination from ${packet.hiddenBytes} invisible bytes.`
+        ? `Success: ${autoDetectedLink ? "detected and " : ""}unlocked a hidden HTTPS destination from ${packet.hiddenBytes} invisible bytes.`
         : `Success: recovered exactly ${wordCount(content)} words from ${packet.hiddenBytes} hidden bytes.`,
       "good"
     );
     await showRevealStage(contentType);
     if (runId !== decodeRunId) return null;
-    return { content, contentType };
+    return { content, contentType, autoDetectedLink };
   }
 
   function resetRevealData() {
